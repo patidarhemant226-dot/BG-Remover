@@ -16,5 +16,8 @@
   "workspaces": [
     "frontend",
     "backend"
-  ]
+  ],
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "*"
+  }
 }

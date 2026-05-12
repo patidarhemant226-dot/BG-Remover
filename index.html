@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelPure – AI Background Remover | Free & Instant</title>
+  <meta name="description" content="Remove image backgrounds instantly with AI. No sign-up required. Upload any photo and get a clean, transparent background in seconds." />
+  <meta name="keywords" content="background remover, remove background, AI background removal, transparent background, free tool" />
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════  NAVBAR  ═══════════════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" id="nav-logo-link">
+        <div class="logo-icon">
+          <i class="ph-bold ph-magic-wand"></i>
+        </div>
+        <span class="logo-text">Pixel<span class="logo-accent">Pure</span></span>
+      </a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#examples" class="nav-link">Examples</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="#upload-section" class="btn-primary-sm" id="try-free-btn">
+          <i class="ph-bold ph-lightning"></i>
+          Try Free
+        </a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════  HERO  ═══════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="ph-fill ph-sparkle"></i>
+        <span>Powered by AI · 100% Free · No Sign-up</span>
+      </div>
+
+      <h1 class="hero-title">
+        Remove Any<br />
+        <span class="gradient-text">Background</span><br />
+        Instantly
+      </h1>
+
+      <p class="hero-sub">
+        Drop your image and watch AI erase the background in seconds.
+        Portraits, products, pets — any subject, perfect results.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#upload-section" class="btn-primary" id="hero-upload-btn">
+          <i class="ph-bold ph-upload-simple"></i>
+          Upload Image
+        </a>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num">10M+</span>
+            <span class="stat-label">Images Processed</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-num">0.5s</span>
+            <span class="stat-label">Avg. Processing</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Free Forever</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating preview cards -->
+    <div class="hero-preview">
+      <div class="preview-card glass-card" id="preview-before-card">
+        <div class="preview-label">
+          <i class="ph-bold ph-image"></i> Original
+        </div>
+        <div class="preview-img-wrap">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80" alt="Before" class="preview-img" />
+        </div>
+      </div>
+
+      <div class="preview-arrow">
+        <div class="arrow-track">
+          <i class="ph-bold ph-arrow-right"></i>
+        </div>
+      </div>
+
+      <div class="preview-card glass-card" id="preview-after-card">
+        <div class="preview-label accent">
+          <i class="ph-fill ph-sparkle"></i> Removed
+        </div>
+        <div class="preview-img-wrap checker">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80" alt="After" class="preview-img preview-img-cutout" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════  UPLOAD / TOOL  ═══════════════════════ -->
+  <section class="tool-section" id="upload-section">
+    <div class="container">
+
+      <div class="section-header">
+        <h2 class="section-title">Start Removing</h2>
+        <p class="section-sub">Upload your image below — AI does the rest.</p>
+      </div>
+
+      <!-- Upload card -->
+      <div class="tool-card glass-card" id="tool-card">
+
+        <!-- Upload Zone (shown when no image) -->
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" accept="image/*" hidden />
+
+          <div class="upload-icon-wrap neu-inset" id="upload-icon-box">
+            <i class="ph-bold ph-cloud-arrow-up upload-icon"></i>
+          </div>
+
+          <h3 class="upload-title">Drag & Drop your image here</h3>
+          <p class="upload-hint">Supports JPG, PNG, WEBP — up to 20 MB</p>
+
+          <div class="upload-actions">
+            <button class="btn-primary" id="upload-btn">
+              <i class="ph-bold ph-folder-open"></i>
+              Browse File
+            </button>
+            <span class="upload-or">or</span>
+            <button class="btn-ghost" id="paste-btn">
+              <i class="ph-bold ph-clipboard"></i>
+              Paste (Ctrl+V)
+            </button>
+          </div>
+
+          <!-- Format chips -->
+          <div class="format-chips">
+            <span class="chip active" data-format="portrait"><i class="ph-bold ph-user"></i> Portrait</span>
+            <span class="chip" data-format="product"><i class="ph-bold ph-shopping-bag"></i> Product</span>
+            <span class="chip" data-format="animal"><i class="ph-bold ph-paw-print"></i> Animal</span>
+            <span class="chip" data-format="graphic"><i class="ph-bold ph-shapes"></i> Graphic</span>
+          </div>
+        </div>
+
+        <!-- Processing State -->
+        <div class="processing-state hidden" id="processing-state">
+          <div class="processing-anim">
+            <div class="pulse-ring ring-1"></div>
+            <div class="pulse-ring ring-2"></div>
+            <div class="pulse-ring ring-3"></div>
+            <div class="processing-icon">
+              <i class="ph-bold ph-cpu"></i>
+            </div>
+          </div>
+          <h3 class="processing-title">AI is Working its Magic…</h3>
+          <p class="processing-sub" id="processing-sub">Analyzing image content</p>
+          <div class="liquid-progress-track neu-inset" id="progress-track">
+            <div class="liquid-progress-fill" id="progress-fill"></div>
+            <span class="progress-pct" id="progress-pct">0%</span>
+          </div>
+          <div class="processing-steps" id="processing-steps">
+            <div class="step-item active" id="step-1"><i class="ph-bold ph-scan"></i> Scanning</div>
+            <div class="step-item" id="step-2"><i class="ph-bold ph-brain"></i> Analyzing</div>
+            <div class="step-item" id="step-3"><i class="ph-bold ph-scissors"></i> Removing</div>
+            <div class="step-item" id="step-4"><i class="ph-bold ph-check-circle"></i> Done</div>
+          </div>
+        </div>
+
+        <!-- Result State -->
+        <div class="result-state hidden" id="result-state">
+
+          <!-- Before / After Comparison -->
+          <div class="compare-wrapper" id="compare-wrapper">
+            <div class="compare-container" id="compare-container">
+              <div class="compare-before" id="compare-before">
+                <img id="original-img" alt="Original" />
+                <div class="compare-label compare-label-left">Original</div>
+              </div>
+              <div class="compare-after" id="compare-after">
+                <div class="checker-bg"></div>
+                <img id="result-img" alt="Result" />
+                <div class="compare-label compare-label-right">
+                  <i class="ph-fill ph-sparkle"></i> Removed
+                </div>
+              </div>
+              <div class="compare-slider" id="compare-slider">
+                <div class="slider-line"></div>
+                <div class="slider-handle">
+                  <i class="ph-bold ph-arrows-left-right"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Toolbar -->
+          <div class="float-toolbar glass-card" id="float-toolbar">
+            <div class="toolbar-title">
+              <i class="ph-bold ph-sliders-horizontal"></i>
+              <span>Output</span>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-section">
+              <span class="toolbar-label">Background</span>
+              <div class="bg-options">
+                <button class="bg-option active" id="bg-transparent" title="Transparent">
+                  <div class="checker-mini"></div>
+                </button>
+                <button class="bg-option" id="bg-white" title="White" style="background:#fff;"></button>
+                <button class="bg-option" id="bg-black" title="Black" style="background:#111;"></button>
+                <button class="bg-option gradient-opt" id="bg-gradient" title="Gradient"></button>
+                <label class="bg-option color-pick" id="bg-custom" title="Custom Color">
+                  <i class="ph-bold ph-eyedropper"></i>
+                  <input type="color" id="custom-color-input" />
+                </label>
+              </div>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-section">
+              <span class="toolbar-label">Format</span>
+              <div class="format-options">
+                <button class="fmt-btn active" id="fmt-png">PNG</button>
+                <button class="fmt-btn" id="fmt-jpg">JPG</button>
+                <button class="fmt-btn" id="fmt-webp">WEBP</button>
+              </div>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <button class="btn-primary btn-download" id="download-btn">
+              <i class="ph-bold ph-download-simple"></i>
+              Download
+            </button>
+
+            <button class="btn-ghost btn-new" id="new-image-btn">
+              <i class="ph-bold ph-arrow-counter-clockwise"></i>
+              New Image
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- /tool-card -->
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════  FEATURES  ═══════════════════════ -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge"><i class="ph-fill ph-lightning"></i> Why PixelPure</div>
+        <h2 class="section-title">Everything You Need</h2>
+        <p class="section-sub">Professional-grade results with zero complexity.</p>
+      </div>
+
+      <div class="features-grid">
+
+        <div class="feature-card neu-card" id="feat-1">
+          <div class="feat-icon-wrap">
+            <i class="ph-bold ph-robot"></i>
+          </div>
+          <h3 class="feat-title">AI-Powered Precision</h3>
+          <p class="feat-desc">Our deep-learning model detects hair strands, soft edges, and complex textures with pixel-perfect accuracy.</p>
+        </div>
+
+        <div class="feature-card neu-card" id="feat-2">
+          <div class="feat-icon-wrap violet">
+            <i class="ph-bold ph-lightning"></i>
+          </div>
+          <h3 class="feat-title">Lightning Fast</h3>
+          <p class="feat-desc">Background removed in under a second. No waiting queues, no server round-trips — runs entirely in your browser.</p>
+        </div>
+
+        <div class="feature-card neu-card" id="feat-3">
+          <div class="feat-icon-wrap teal">
+            <i class="ph-bold ph-shield-check"></i>
+          </div>
+          <h3 class="feat-title">100% Private</h3>
+          <p class="feat-desc">Your images never leave your device. All processing happens locally — no uploads, no data collection.</p>
+        </div>
+
+        <div class="feature-card neu-card" id="feat-4">
+          <div class="feat-icon-wrap orange">
+            <i class="ph-bold ph-export"></i>
+          </div>
+          <h3 class="feat-title">Flexible Export</h3>
+          <p class="feat-desc">Download as PNG with transparency, JPEG, or WEBP. Add solid colors or gradients as new backgrounds in one click.</p>
+        </div>
+
+        <div class="feature-card neu-card" id="feat-5">
+          <div class="feat-icon-wrap pink">
+            <i class="ph-bold ph-arrows-in"></i>
+          </div>
+          <h3 class="feat-title">Smart Edge Refine</h3>
+          <p class="feat-desc">Automatically softens hard cutout edges so results blend naturally into any new background or design layout.</p>
+        </div>
+
+        <div class="feature-card neu-card" id="feat-6">
+          <div class="feat-icon-wrap green">
+            <i class="ph-bold ph-gift"></i>
+          </div>
+          <h3 class="feat-title">Always Free</h3>
+          <p class="feat-desc">No hidden fees, no account required. Unlimited background removals, forever — because great tools should be accessible.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════  HOW IT WORKS  ═══════════════════════ -->
+  <section class="how-section" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge"><i class="ph-fill ph-path"></i> Process</div>
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-sub">Three simple steps to a clean background.</p>
+      </div>
+
+      <div class="steps-wrapper">
+        <div class="steps-track"></div>
+
+        <div class="step-card glass-card" id="step-card-1">
+          <div class="step-num">01</div>
+          <div class="step-icon-big">
+            <i class="ph-bold ph-upload-simple"></i>
+          </div>
+          <h3 class="step-title">Upload Image</h3>
+          <p class="step-desc">Drag & drop or browse for any JPG, PNG, or WEBP image. Up to 20 MB supported.</p>
+        </div>
+
+        <div class="step-card glass-card" id="step-card-2">
+          <div class="step-num">02</div>
+          <div class="step-icon-big violet">
+            <i class="ph-bold ph-brain"></i>
+          </div>
+          <h3 class="step-title">AI Processes</h3>
+          <p class="step-desc">Our on-device AI model analyzes every pixel to detect foreground subjects and remove the background.</p>
+        </div>
+
+        <div class="step-card glass-card" id="step-card-3">
+          <div class="step-num">03</div>
+          <div class="step-icon-big teal">
+            <i class="ph-bold ph-download-simple"></i>
+          </div>
+          <h3 class="step-title">Download Result</h3>
+          <p class="step-desc">Preview the result with a drag-to-compare slider, choose your format, and download instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════  EXAMPLES  ═══════════════════════ -->
+  <section class="examples-section" id="examples">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge"><i class="ph-fill ph-images"></i> Gallery</div>
+        <h2 class="section-title">See It In Action</h2>
+        <p class="section-sub">Real results across different image types.</p>
+      </div>
+
+      <div class="examples-grid">
+        <div class="example-item" id="ex-1">
+          <div class="example-chip violet">Portrait</div>
+          <div class="example-images">
+            <div class="ex-img-wrap checker"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=280&q=80" alt="Portrait example" class="ex-img" /></div>
+          </div>
+        </div>
+        <div class="example-item" id="ex-2">
+          <div class="example-chip blue">Product</div>
+          <div class="example-images">
+            <div class="ex-img-wrap checker"><img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=280&q=80" alt="Product example" class="ex-img" /></div>
+          </div>
+        </div>
+        <div class="example-item" id="ex-3">
+          <div class="example-chip orange">Animal</div>
+          <div class="example-images">
+            <div class="ex-img-wrap checker"><img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=280&q=80" alt="Animal example" class="ex-img" /></div>
+          </div>
+        </div>
+        <div class="example-item" id="ex-4">
+          <div class="example-chip green">Food</div>
+          <div class="example-images">
+            <div class="ex-img-wrap checker"><img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=280&q=80" alt="Food example" class="ex-img" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════  CTA BANNER  ═══════════════════════ -->
+  <section class="cta-section" id="cta-section">
+    <div class="cta-orb cta-orb-1"></div>
+    <div class="cta-orb cta-orb-2"></div>
+    <div class="container">
+      <div class="cta-card glass-card">
+        <div class="cta-icon"><i class="ph-fill ph-magic-wand"></i></div>
+        <h2 class="cta-title">Ready to Remove Your First Background?</h2>
+        <p class="cta-sub">Join millions of creators who trust PixelPure for instant, flawless results.</p>
+        <a href="#upload-section" class="btn-primary btn-xl" id="cta-upload-btn">
+          <i class="ph-bold ph-upload-simple"></i>
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════  FOOTER  ═══════════════════════ -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="#" class="nav-logo" id="footer-logo">
+            <div class="logo-icon">
+              <i class="ph-bold ph-magic-wand"></i>
+            </div>
+            <span class="logo-text">Pixel<span class="logo-accent">Pure</span></span>
+          </a>
+          <p class="footer-tagline">AI background removal, beautifully fast.</p>
+        </div>
+
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4 class="footer-col-title">Tool</h4>
+            <a href="#upload-section" class="footer-link">Remove Background</a>
+            <a href="#examples" class="footer-link">Examples</a>
+            <a href="#how-it-works" class="footer-link">How It Works</a>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-col-title">Use Cases</h4>
+            <a href="#" class="footer-link">E-Commerce</a>
+            <a href="#" class="footer-link">Portrait Photos</a>
+            <a href="#" class="footer-link">Marketing Assets</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 PixelPure. Built with ♥ for creators everywhere.</p>
+        <div class="footer-legal">
+          <a href="#" class="footer-link-sm">Privacy</a>
+          <a href="#" class="footer-link-sm">Terms</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast">
+    <i class="ph-bold ph-check-circle"></i>
+    <span id="toast-msg">Done!</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

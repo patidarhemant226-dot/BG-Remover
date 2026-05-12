@@ -1,0 +1,20 @@
+{
+  "name": "bg-remover-monorepo",
+  "version": "1.0.0",
+  "description": "Fullstack AI Background Remover",
+  "scripts": {
+    "install-all": "npm install && npm install --workspaces",
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=frontend",
+    "start": "npm run dev",
+    "backend": "npm run dev --prefix backend",
+    "frontend": "npm run dev --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}

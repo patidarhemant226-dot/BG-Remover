@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Wand2, Menu, X, History } from 'lucide-react';
 
 export default function Navbar({ onHistoryClick }) {

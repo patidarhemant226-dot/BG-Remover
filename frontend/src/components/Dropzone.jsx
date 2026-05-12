@@ -3,7 +3,7 @@ import { Upload, FolderOpen, Clipboard } from 'lucide-react';
 
 const CHIPS = ['Portrait', 'Product', 'Animal', 'Graphic', 'Food'];
 
-export default function Dropzone({ onFile }) {
+export default function Dropzone({ onFiles }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [activeChip, setActiveChip] = useState('Portrait');

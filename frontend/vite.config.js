@@ -18,6 +18,10 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   },
+  css: {
+    transformer: 'postcss',
+    minify: 'esbuild',
+  },
   build: {
     chunkSizeWarningLimit: 10000, // imgly model chunks are large
   },

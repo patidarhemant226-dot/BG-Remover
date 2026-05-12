@@ -40,7 +40,9 @@ const processImageHandler = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Filename is required' });
     }
 
-    const inputPath = path.join(__dirname, '../../uploads', filename);
+    const isVercel = process.env.VERCEL === '1';
+    const uploadDir = isVercel ? '/tmp' : path.join(__dirname, '../../uploads');
+    const inputPath = path.join(uploadDir, filename);
 
     if (!fs.existsSync(inputPath)) {
       return res.status(404).json({ success: false, message: 'Image not found' });

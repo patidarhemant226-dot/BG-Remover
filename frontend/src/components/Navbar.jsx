@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Wand2, Menu, X } from 'lucide-react';
+import { Wand2, Menu, X, History } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ onHistoryClick }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -20,7 +19,7 @@ export default function Navbar() {
     <nav
       className={`fixed z-50 transition-all duration-500 ease-out left-1/2 -translate-x-1/2 ${
         scrolled 
-          ? 'top-4 w-[calc(100%-2rem)] max-w-4xl py-3 rounded-2xl bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-2xl' 
+          ? 'top-4 w-[calc(100%-2rem)] max-w-5xl py-3 rounded-2xl bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-2xl' 
           : 'top-0 w-full max-w-none py-6 bg-white/40 backdrop-blur-md border-b border-white/20 shadow-none'
       }`}
     >
@@ -46,6 +45,13 @@ export default function Navbar() {
               {l.label}
             </a>
           ))}
+          
+          <button 
+            onClick={onHistoryClick}
+            className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all"
+          >
+            <History size={16} /> History
+          </button>
         </div>
 
         {/* Desktop CTA */}

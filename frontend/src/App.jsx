@@ -56,28 +56,77 @@ const EXAMPLES = [
   { label: 'Car',      chip: 'bg-teal-500',    src: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&q=80' },
 ];
 
+import MaskEditor from './components/MaskEditor';
+import HistoryDrawer from './components/HistoryDrawer';
+
 export default function App() {
-  const { state, originalURL, resultURL, resultBlob, progress, stepIdx, steps, errorMsg, processFile, reset } = useBgRemover();
+  const { state, queue, currentItem, currentIndex, errorMsg, processFiles, reset } = useBgRemover();
   const [bgType, setBgType] = useState('transparent');
   const [customColor, setCustomColor] = useState('#ff6b6b');
   const [format, setFormat] = useState('PNG');
   const [downloading, setDownloading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [viewIndex, setViewIndex] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [localHistory, setLocalHistory] = useState([]);
+
+  // Load history from localStorage
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('pixelpure_history') || '[]');
+    setLocalHistory(saved);
+  }, [state]); // Refresh when state changes (e.g. after processing)
+
+  const clearHistory = () => {
+    localStorage.removeItem('pixelpure_history');
+    setLocalHistory([]);
+  };
+
+  const activeItem = queue[viewIndex] || currentItem;
+  const displayResultURL = activeItem?.resultURL;
+  const originalURL = activeItem?.originalURL;
 
   const resolvedBg = bgType === 'custom' ? customColor : bgType;
   const mimeMap = { PNG: 'image/png', JPG: 'image/jpeg', WEBP: 'image/webp' };
   const extMap  = { PNG: 'png', JPG: 'jpg', WEBP: 'webp' };
 
+  const handleMaskSave = (blob) => {
+    const url = URL.createObjectURL(blob);
+    // In batch mode, we'd update the specific item in the queue.
+    // For now, let's keep it simple and just update the active view index's result.
+  };
+
   const handleDownload = useCallback(async () => {
-    if (!resultURL || downloading) return;
+    if (!displayResultURL || downloading) return;
     setDownloading(true);
-    const blob = await applyBackground(resultURL, resolvedBg, mimeMap[format]);
+    const blob = await applyBackground(displayResultURL, resolvedBg, mimeMap[format]);
     downloadBlob(blob, `pixelpure-result.${extMap[format]}`);
     setDownloading(false);
-  }, [resultURL, resolvedBg, format, downloading]);
+  }, [displayResultURL, resolvedBg, format, downloading]);
+
+  const handleReset = () => {
+    reset();
+    setViewIndex(0);
+  };
 
   return (
     <div className="min-h-screen selection:bg-blue-100" style={{ background: 'var(--surface)' }}>
-      <Navbar />
+      {isEditing && activeItem && (
+        <MaskEditor 
+          originalURL={originalURL} 
+          resultURL={displayResultURL} 
+          onSave={handleMaskSave} 
+          onCancel={() => setIsEditing(false)} 
+        />
+      )}
+      
+      <HistoryDrawer 
+        isOpen={historyOpen} 
+        onClose={() => setHistoryOpen(false)} 
+        history={localHistory} 
+        onClear={clearHistory} 
+      />
+
+      <Navbar onHistoryClick={() => setHistoryOpen(true)} />
 
       {/* ── HERO ── */}
       <section className="relative min-h-[95vh] flex flex-col items-center justify-center pt-32 pb-20 overflow-hidden" id="hero">
@@ -119,40 +168,52 @@ export default function App() {
       {/* ── TOOL ── */}
       <section id="tool" className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50/50 py-32">
         <div className="app-container w-full flex flex-col items-center justify-center">
-          <SectionHead badge="✦ Try It" title="Start Removing" sub="Upload your image below — AI does the rest." />
+          <SectionHead badge="✦ Try It" title="Start Removing" sub="Upload multiple images — AI handles the batch." />
 
           <div className="w-full max-w-5xl mx-auto flex justify-center">
             <div className="glass-panel rounded-[3rem] p-4 md:p-8 w-full">
               <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100">
                 {/* IDLE */}
-                {state === 'idle' && <Dropzone onFile={processFile} />}
+                {state === 'idle' && <Dropzone onFiles={processFiles} />}
 
                 {/* PROCESSING */}
                 {state === 'processing' && (
-                  <ProgressBar progress={progress} stepIdx={stepIdx} steps={steps} />
-                )}
-
-                {/* ERROR */}
-                {state === 'error' && (
-                  <div className="flex flex-col items-center gap-4 py-12 text-center">
-                    <div className="w-20 h-20 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 mb-2">
-                      <AlertCircle size={40} />
+                  <div className="flex flex-col gap-8 py-10">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-slate-900">Processing Batch</h3>
+                      <p className="text-slate-500">Handling {currentIndex + 1} of {queue.length} images</p>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900">Something went wrong</h3>
-                    <p className="text-slate-500 max-w-sm">{errorMsg}</p>
-                    <button onClick={reset}
-                      className="mt-6 flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white btn-modern"
-                      style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 8px 25px rgba(239,68,68,0.3)' }}>
-                      <RotateCcw size={18} /> Try Again
-                    </button>
+                    <ProgressBar progress={currentItem?.progress || 0} stepIdx={currentIndex} steps={queue.map((_, i) => ({ id: i, label: `Image ${i+1}` }))} />
                   </div>
                 )}
 
                 {/* DONE */}
                 {state === 'done' && (
                   <div className="flex flex-col lg:flex-row gap-12">
-                    <div className="flex-1 min-h-[450px]">
-                      <ImagePreview originalURL={originalURL} resultURL={resultURL} />
+                    <div className="flex-1">
+                      <div className="min-h-[450px] relative group/preview mb-8">
+                        <ImagePreview originalURL={originalURL} resultURL={displayResultURL} />
+                        <button 
+                          onClick={() => setIsEditing(true)}
+                          className="absolute bottom-6 right-6 px-6 py-3 rounded-2xl glass-panel border-white/20 text-slate-900 font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-2xl z-50"
+                        >
+                          <Scissors size={18} className="text-blue-600" />
+                          Edit Refinement
+                        </button>
+                      </div>
+
+                      {/* Batch Selection Strip */}
+                      <div className="flex gap-4 overflow-x-auto pb-4 px-2">
+                        {queue.map((item, idx) => (
+                          <button 
+                            key={item.id} 
+                            onClick={() => setViewIndex(idx)}
+                            className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${viewIndex === idx ? 'border-blue-600 scale-105 shadow-lg' : 'border-slate-100 hover:border-slate-300'}`}
+                          >
+                            <img src={item.resultURL || item.originalURL} className="w-full h-full object-cover" alt="" />
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="lg:w-80 flex flex-col gap-8">
@@ -174,11 +235,11 @@ export default function App() {
                         <button onClick={handleDownload} disabled={downloading}
                           className="btn-modern w-full py-5 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3">
                           <Download size={22} />
-                          {downloading ? 'Processing…' : `Download ${format}`}
+                          Download Current
                         </button>
-                        <button onClick={reset}
+                        <button onClick={handleReset}
                           className="w-full py-4 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                          <RotateCcw size={18} /> New Image
+                          <RotateCcw size={18} /> New Batch
                         </button>
                       </div>
                     </div>

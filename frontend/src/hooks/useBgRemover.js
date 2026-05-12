@@ -11,86 +11,93 @@ const STEPS = [
 
 export function useBgRemover() {
   const [state, setState] = useState('idle'); // idle | processing | done | error
-  const [originalURL, setOriginalURL] = useState(null);
-  const [resultURL, setResultURL] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [stepIdx, setStepIdx] = useState(0);
+  const [queue, setQueue] = useState([]); // Array of { file, originalURL, resultURL, status: 'pending' | 'processing' | 'done' | 'error', progress: 0 }
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [errorMsg, setErrorMsg] = useState('');
-  const resultBlobRef = useRef(null);
 
-  const processFile = useCallback(async (file) => {
-    if (!file || !file.type.startsWith('image/')) return;
+  const processFiles = useCallback(async (files) => {
+    const newItems = files.map(file => ({
+      file,
+      originalURL: blobToObjectURL(file),
+      resultURL: null,
+      status: 'pending',
+      progress: 0,
+      id: Math.random().toString(36).substr(2, 9)
+    }));
 
-    // Reset
-    if (resultURL) URL.revokeObjectURL(resultURL);
-    setResultURL(null);
-    resultBlobRef.current = null;
-    setProgress(0);
-    setStepIdx(0);
-    setErrorMsg('');
-
-    const origURL = blobToObjectURL(file);
-    setOriginalURL(origURL);
+    setQueue(prev => [...prev, ...newItems]);
     setState('processing');
+  }, []);
 
-    // Fake step progress (real library doesn't expose steps)
-    let fakeStep = 0;
-    const stepTimer = setInterval(() => {
-      fakeStep = Math.min(fakeStep + 1, STEPS.length - 1);
-      setStepIdx(fakeStep);
-    }, 1800);
+  // Process queue sequentially
+  useEffect(() => {
+    const processNext = async () => {
+      const pendingIdx = queue.findIndex(item => item.status === 'pending');
+      if (pendingIdx === -1) {
+        if (queue.length > 0 && queue.every(item => item.status === 'done' || item.status === 'error')) {
+          setState('done');
+        }
+        return;
+      }
 
-    // Fake numeric progress
-    let fakeProgress = 0;
-    const progressTimer = setInterval(() => {
-      fakeProgress = Math.min(fakeProgress + Math.random() * 8, 90);
-      setProgress(Math.round(fakeProgress));
-    }, 300);
+      setCurrentIndex(pendingIdx);
+      const item = queue[pendingIdx];
+      
+      // Update status to processing
+      setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'processing' } : it));
 
-    try {
-      const resultBlob = await removeBackground(file, {
-        output: { format: 'image/png', quality: 1 },
-      });
+      try {
+        const resultBlob = await removeBackground(item.file, {
+          output: { format: 'image/png', quality: 1 },
+          onProgress: (p) => {
+            setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, progress: Math.round(p * 100) } : it));
+          }
+        });
 
-      clearInterval(stepTimer);
-      clearInterval(progressTimer);
-      setProgress(100);
-      setStepIdx(STEPS.length - 1);
+        const url = blobToObjectURL(resultBlob);
+        setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'done', resultURL: url, progress: 100 } : it));
 
-      resultBlobRef.current = resultBlob;
-      const url = blobToObjectURL(resultBlob);
-      setResultURL(url);
-      setState('done');
-    } catch (err) {
-      clearInterval(stepTimer);
-      clearInterval(progressTimer);
-      setErrorMsg(err?.message || 'Something went wrong. Please try again.');
-      setState('error');
+        // Save to persistent history
+        const historyItem = {
+          id: item.id,
+          originalURL: item.originalURL, // Note: ObjectURLs won't persist across reloads, 
+          resultURL: url,               // in a real app we'd save the base64 or blob to indexedDB
+          timestamp: new Date().toISOString()
+        };
+        const existingHistory = JSON.parse(localStorage.getItem('pixelpure_history') || '[]');
+        localStorage.setItem('pixelpure_history', JSON.stringify([historyItem, ...existingHistory].slice(0, 20)));
+
+      } catch (err) {
+        setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'error' } : it));
+        setErrorMsg(err?.message || 'Processing failed');
+      }
+    };
+
+    if (state === 'processing') {
+      processNext();
     }
-  }, [resultURL]);
+  }, [queue, state]);
 
   const reset = useCallback(() => {
-    if (originalURL) URL.revokeObjectURL(originalURL);
-    if (resultURL) URL.revokeObjectURL(resultURL);
-    setOriginalURL(null);
-    setResultURL(null);
-    resultBlobRef.current = null;
-    setProgress(0);
-    setStepIdx(0);
+    queue.forEach(item => {
+      if (item.originalURL) URL.revokeObjectURL(item.originalURL);
+      if (item.resultURL) URL.revokeObjectURL(item.resultURL);
+    });
+    setQueue([]);
+    setCurrentIndex(-1);
     setErrorMsg('');
     setState('idle');
-  }, [originalURL, resultURL]);
+  }, [queue]);
+
+  const currentItem = currentIndex >= 0 ? queue[currentIndex] : null;
 
   return {
     state,
-    originalURL,
-    resultURL,
-    resultBlob: resultBlobRef,
-    progress,
-    stepIdx,
-    steps: STEPS,
+    queue,
+    currentIndex,
+    currentItem,
     errorMsg,
-    processFile,
+    processFiles,
     reset,
   };
 }

@@ -9,8 +9,8 @@ export default function Dropzone({ onFile }) {
   const [activeChip, setActiveChip] = useState('Portrait');
 
   const handleFiles = (files) => {
-    const file = files[0];
-    if (file && file.type.startsWith('image/')) onFile(file);
+    const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (validFiles.length > 0) onFiles(validFiles);
   };
 
   const onDrop = (e) => {
@@ -26,7 +26,7 @@ export default function Dropzone({ onFile }) {
         for (const type of item.types) {
           if (type.startsWith('image/')) {
             const blob = await item.getType(type);
-            onFile(new File([blob], 'pasted.png', { type }));
+            onFiles([new File([blob], 'pasted.png', { type })]);
             return;
           }
         }
@@ -55,6 +55,7 @@ export default function Dropzone({ onFile }) {
           ref={inputRef}
           type="file"
           accept="image/*"
+          multiple
           hidden
           onChange={(e) => handleFiles(e.target.files)}
         />

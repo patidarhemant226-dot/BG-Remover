@@ -12,7 +12,7 @@ export default function ProgressBar({ progress, stepIdx, steps }) {
            <div>
              <h3 className="text-2xl font-black text-slate-900 tracking-tight">AI Extraction</h3>
              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-               {steps[stepIdx]?.label || 'Analyzing...'}
+                {progress === 0 ? 'Initializing AI Engine…' : (steps[stepIdx]?.label || 'Analyzing…')}
              </p>
            </div>
            <p className="text-3xl font-black text-blue-600 tracking-tighter">{progress}%</p>

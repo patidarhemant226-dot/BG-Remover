@@ -180,10 +180,36 @@ export default function App() {
                 {state === 'processing' && (
                   <div className="flex flex-col gap-8 py-10">
                     <div className="text-center">
-                      <h3 className="text-2xl font-bold text-slate-900">Processing Batch</h3>
-                      <p className="text-slate-500">Handling {currentIndex + 1} of {queue.length} images</p>
+                      <h3 className="text-2xl font-bold text-slate-900">
+                        {errorMsg ? 'Processing Paused' : 'Processing Batch'}
+                      </h3>
+                      <p className="text-slate-500">
+                        {errorMsg ? 'An error occurred' : `Handling ${currentIndex + 1} of ${queue.length} images`}
+                      </p>
                     </div>
-                    <ProgressBar progress={currentItem?.progress || 0} stepIdx={currentIndex} steps={queue.map((_, i) => ({ id: i, label: `Image ${i+1}` }))} />
+                    
+                    {errorMsg ? (
+                      <div className="flex flex-col items-center gap-6 p-8 rounded-[2rem] bg-red-50 border border-red-100">
+                        <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center">
+                          <AlertCircle size={32} />
+                        </div>
+                        <p className="text-red-900 font-bold text-center max-w-md">{errorMsg}</p>
+                        <button onClick={handleReset} className="btn-modern bg-slate-900 px-8 py-3 rounded-xl text-white font-bold text-sm">
+                          Try Again
+                        </button>
+                      </div>
+                    ) : (
+                      <ProgressBar 
+                        progress={currentItem?.progress || 0} 
+                        stepIdx={currentIndex} 
+                        steps={[
+                          { id: 1, label: 'Scanning Image…' },
+                          { id: 2, label: 'AI Extraction…' },
+                          { id: 3, label: 'Edge Refinement…' },
+                          { id: 4, label: 'Finalizing…' }
+                        ]} 
+                      />
+                    )}
                   </div>
                 )}
 

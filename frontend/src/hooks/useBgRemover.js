@@ -1,19 +1,18 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { removeBackground } from '@imgly/background-removal';
+import { removeBackground, Config, preload } from '@imgly/background-removal';
 import { blobToObjectURL } from '../utils/imageUtils';
-
-const STEPS = [
-  { id: 1, label: 'Scanning image…' },
-  { id: 2, label: 'Detecting subject…' },
-  { id: 3, label: 'Removing background…' },
-  { id: 4, label: 'Finalizing…' },
-];
 
 export function useBgRemover() {
   const [state, setState] = useState('idle'); // idle | processing | done | error
-  const [queue, setQueue] = useState([]); // Array of { file, originalURL, resultURL, status: 'pending' | 'processing' | 'done' | 'error', progress: 0 }
+  const [queue, setQueue] = useState([]); 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [errorMsg, setErrorMsg] = useState('');
+  const processingRef = useRef(false);
+
+  // Preload model on mount
+  useEffect(() => {
+    preload({ model: 'small' }).catch(err => console.error("Preload failed:", err));
+  }, []);
 
   const processFiles = useCallback(async (files) => {
     const newItems = files.map(file => ({
@@ -27,55 +26,81 @@ export function useBgRemover() {
 
     setQueue(prev => [...prev, ...newItems]);
     setState('processing');
+    setErrorMsg('');
   }, []);
 
-  // Process queue sequentially
   useEffect(() => {
+    if (state !== 'processing' || processingRef.current) return;
+
     const processNext = async () => {
       const pendingIdx = queue.findIndex(item => item.status === 'pending');
+      
       if (pendingIdx === -1) {
-        if (queue.length > 0 && queue.every(item => item.status === 'done' || item.status === 'error')) {
+        const allFinished = queue.length > 0 && queue.every(it => it.status === 'done' || it.status === 'error');
+        if (allFinished) {
           setState('done');
+          processingRef.current = false;
         }
         return;
       }
 
+      processingRef.current = true;
       setCurrentIndex(pendingIdx);
       const item = queue[pendingIdx];
       
       // Update status to processing
-      setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'processing' } : it));
+      setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'processing', progress: 0 } : it));
 
       try {
-        const resultBlob = await removeBackground(item.file, {
-          output: { format: 'image/png', quality: 1 },
-          onProgress: (p) => {
-            setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, progress: Math.round(p * 100) } : it));
-          }
-        });
+        // Log environment status
+        if (!window.crossOriginIsolated) {
+          console.warn("Cross-Origin Isolation is not enabled. Background removal might be slow or fail.");
+        }
 
+        const config = {
+          output: { format: 'image/png', quality: 1 },
+          model: 'small', // Faster loading and processing
+          onProgress: (p) => {
+            const progress = Math.round(p * 100);
+            setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, progress } : it));
+          }
+        };
+
+        const resultBlob = await removeBackground(item.file, config);
         const url = blobToObjectURL(resultBlob);
-        setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'done', resultURL: url, progress: 100 } : it));
+
+        setQueue(prev => prev.map((it, i) => 
+          i === pendingIdx ? { ...it, status: 'done', resultURL: url, progress: 100 } : it
+        ));
 
         // Save to persistent history
         const historyItem = {
           id: item.id,
-          originalURL: item.originalURL, // Note: ObjectURLs won't persist across reloads, 
-          resultURL: url,               // in a real app we'd save the base64 or blob to indexedDB
+          originalURL: item.originalURL,
+          resultURL: url,
           timestamp: new Date().toISOString()
         };
         const existingHistory = JSON.parse(localStorage.getItem('pixelpure_history') || '[]');
         localStorage.setItem('pixelpure_history', JSON.stringify([historyItem, ...existingHistory].slice(0, 20)));
 
       } catch (err) {
+        console.error("BG Removal Error:", err);
+        let msg = err?.message || 'Processing failed';
+        
+        if (msg.includes('SharedArrayBuffer')) {
+          msg = "Security headers (COOP/COEP) missing. Please check server configuration.";
+        } else if (msg.includes('fetch')) {
+          msg = "Failed to download AI model. Check your internet connection.";
+        }
+
         setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'error' } : it));
-        setErrorMsg(err?.message || 'Processing failed');
+        setErrorMsg(msg);
+      } finally {
+        processingRef.current = false;
       }
     };
 
-    if (state === 'processing') {
-      processNext();
-    }
+    processNext();
   }, [queue, state]);
 
   const reset = useCallback(() => {
@@ -87,6 +112,7 @@ export function useBgRemover() {
     setCurrentIndex(-1);
     setErrorMsg('');
     setState('idle');
+    processingRef.current = false;
   }, [queue]);
 
   const currentItem = currentIndex >= 0 ? queue[currentIndex] : null;
@@ -101,3 +127,4 @@ export function useBgRemover() {
     reset,
   };
 }
+

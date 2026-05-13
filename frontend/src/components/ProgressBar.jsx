@@ -12,7 +12,7 @@ export default function ProgressBar({ progress, stepIdx, steps }) {
            <div>
              <h3 className="text-2xl font-black text-slate-900 tracking-tight">AI Extraction</h3>
              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                {progress === 0 ? 'Initializing AI Engine…' : (steps[stepIdx]?.label || 'Analyzing…')}
+                {progress < 5 ? 'Warming up AI Engine...' : (steps[stepIdx]?.label || 'AI Processing...')}
              </p>
            </div>
            <p className="text-3xl font-black text-blue-600 tracking-tighter">{progress}%</p>
@@ -55,7 +55,7 @@ export default function ProgressBar({ progress, stepIdx, steps }) {
               <span className={`text-[11px] font-black uppercase tracking-widest ${
                 active ? 'text-slate-900' : 'text-slate-400'
               }`}>
-                {step.label.split('…')[0]}
+                {step.label.split('…')[0] || step.label.split('...')[0]}
               </span>
             </div>
           );

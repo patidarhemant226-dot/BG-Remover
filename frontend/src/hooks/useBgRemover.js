@@ -51,8 +51,18 @@ export function useBgRemover() {
       // Update status to processing
       setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, status: 'processing', progress: 0 } : it));
 
+      // Simulated progress for the "Initializing" phase (0% to 15%)
+      let fakeProgress = 0;
+      const progressInterval = setInterval(() => {
+        if (fakeProgress < 15) {
+          fakeProgress += Math.random() * 2;
+          setQueue(prev => prev.map((it, i) => 
+            i === pendingIdx ? { ...it, progress: Math.min(Math.round(fakeProgress), 15), stepIdx: 0 } : it
+          ));
+        }
+      }, 300);
+
       try {
-        // Log environment status
         if (!window.crossOriginIsolated) {
           console.warn("Cross-Origin Isolation is not enabled. Background removal might be slow or fail.");
         }
@@ -61,8 +71,9 @@ export function useBgRemover() {
           output: { format: 'image/png', quality: 1 },
           model: 'small', 
           onProgress: (p) => {
-            const progress = Math.round(p * 100);
-            // Calculate which step we are on based on progress percentage
+            const realProgress = Math.round(p * 100);
+            const progress = Math.max(realProgress, Math.round(fakeProgress));
+            
             let step = 0;
             if (progress > 10) step = 1;
             if (progress > 70) step = 2;
@@ -75,6 +86,7 @@ export function useBgRemover() {
         };
 
         const resultBlob = await removeBackground(item.file, config);
+        clearInterval(progressInterval);
         const url = blobToObjectURL(resultBlob);
 
         setQueue(prev => prev.map((it, i) => 

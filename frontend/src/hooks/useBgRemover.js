@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { removeBackground, Config, preload } from '@imgly/background-removal';
+import { removeBackground, preload } from '@imgly/background-removal';
 import { blobToObjectURL } from '../utils/imageUtils';
 
 export function useBgRemover() {
@@ -59,10 +59,18 @@ export function useBgRemover() {
 
         const config = {
           output: { format: 'image/png', quality: 1 },
-          model: 'small', // Faster loading and processing
+          model: 'small', 
           onProgress: (p) => {
             const progress = Math.round(p * 100);
-            setQueue(prev => prev.map((it, i) => i === pendingIdx ? { ...it, progress } : it));
+            // Calculate which step we are on based on progress percentage
+            let step = 0;
+            if (progress > 10) step = 1;
+            if (progress > 70) step = 2;
+            if (progress > 90) step = 3;
+            
+            setQueue(prev => prev.map((it, i) => 
+              i === pendingIdx ? { ...it, progress, stepIdx: step } : it
+            ));
           }
         };
 

@@ -4,6 +4,8 @@ import Dropzone from './components/Dropzone';
 import ProgressBar from './components/ProgressBar';
 import ImagePreview from './components/ImagePreview';
 import BgPicker from './components/BgPicker';
+import MaskEditor from './components/MaskEditor';
+import HistoryDrawer from './components/HistoryDrawer';
 import { useBgRemover } from './hooks/useBgRemover';
 import { applyBackground, downloadBlob } from './utils/imageUtils';
 import {
@@ -56,8 +58,7 @@ const EXAMPLES = [
   { label: 'Car',      chip: 'bg-teal-500',    src: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&q=80' },
 ];
 
-import MaskEditor from './components/MaskEditor';
-import HistoryDrawer from './components/HistoryDrawer';
+
 
 export default function App() {
   const { state, queue, currentItem, currentIndex, errorMsg, processFiles, reset } = useBgRemover();
@@ -72,8 +73,14 @@ export default function App() {
 
   // Load history from localStorage
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('pixelpure_history') || '[]');
-    setLocalHistory(saved);
+    try {
+      const stored = localStorage.getItem('pixelpure_history');
+      const saved = stored ? JSON.parse(stored) : [];
+      setLocalHistory(Array.isArray(saved) ? saved : []);
+    } catch (e) {
+      console.error("Failed to load history:", e);
+      setLocalHistory([]);
+    }
   }, [state]); // Refresh when state changes (e.g. after processing)
 
   const clearHistory = () => {
@@ -179,6 +186,14 @@ export default function App() {
                 {/* PROCESSING */}
                 {state === 'processing' && (
                   <div className="flex flex-col gap-8 py-10">
+                    {!window.crossOriginIsolated && (
+                      <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-3 animate-pulse">
+                        <AlertCircle size={20} className="text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-900 font-medium leading-tight">
+                          Performance Alert: Cross-Origin Isolation is disabled. The AI is running in "Safe Mode" which is 5x slower.
+                        </p>
+                      </div>
+                    )}
                     <div className="text-center">
                       <h3 className="text-2xl font-bold text-slate-900">
                         {errorMsg ? 'Processing Paused' : 'Processing Batch'}
@@ -201,7 +216,7 @@ export default function App() {
                     ) : (
                       <ProgressBar 
                         progress={currentItem?.progress || 0} 
-                        stepIdx={currentIndex} 
+                        stepIdx={currentItem?.stepIdx || 0} 
                         steps={[
                           { id: 1, label: 'Scanning Image…' },
                           { id: 2, label: 'AI Extraction…' },
